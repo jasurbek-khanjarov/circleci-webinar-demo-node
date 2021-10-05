@@ -1,0 +1,73 @@
+version: 2.1
+parameters:
+    NODE_CACHE_VERSION:
+      type: string
+      default: v4
+      description: 'Prefix of the cache keys. Change it if you want the next run to be cacheless.'
+orbs:
+  slack: circleci/slack@4.1
+  aws-s3: circleci/aws-s3@3.0
+  node: circleci/node@4.7.0
+jobs:
+  test:
+    executor:
+      name: node/default
+      tag: '13.14'
+    steps:
+      - checkout
+      - node/install-packages
+      - run:
+          command: npm run test
+      - store_test_results:
+          path: tests/_output
+      - store_artifacts:
+          path: tests/_output
+  deploy:
+    circleci_ip_ranges: true # opts the job into the IP ranges feature
+    docker:
+      - image: 'cimg/base:stable'
+    steps:
+      - checkout
+      - run: mkdir bucket && echo "lorem ipsum" > bucket/build_asset.txt
+      - aws-s3/sync:
+          arguments: |
+            --cache-control "max-age=86400"
+          from: bucket
+          to: 's3://jasur-webinar-demo-bucket/<<pipeline.number>>/'
+      - aws-s3/copy:
+          arguments: '--dryrun'
+          from: bucket/build_asset.txt
+          to: 's3://jasur-webinar-demo-bucket/<<pipeline.number>>/'
+  notify:
+    docker:
+      - image: 'cimg/base:stable'
+    steps:
+      - slack/notify:
+          custom: |
+            {
+              "blocks": [
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "plain_text",
+                      "text": "*This is a text notification*",
+                      "emoji": true
+                    }
+                  ]
+                }
+              ]
+            }
+          event: always
+workflows: # this is a demo of orbs
+  test-build-and-notify:
+    jobs:
+    - test
+    - deploy:
+        context: aws_secrets
+        requires:
+          - test
+    - notify:
+        context: slack_secrets
+        requires:
+          - deploy
