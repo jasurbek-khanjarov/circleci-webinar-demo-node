@@ -27,8 +27,9 @@ jobs:
       - image: 'cimg/base:stable'
     steps:
       - checkout
+      - node/install:
+         install-yarn: true
       - node/install-packages
-      - run: npm install
       - run:
           command: npm run test
       - store_test_results:
