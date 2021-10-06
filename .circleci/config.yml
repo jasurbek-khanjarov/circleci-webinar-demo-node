@@ -2,7 +2,7 @@ version: 2.1
 parameters:
     NODE_CACHE_VERSION:
       type: string
-      default: v1
+      default: v2
       description: 'Prefix of the cache keys. Change it if you want the next run to be cacheless.'
 orbs:
   slack: circleci/slack@4.1
