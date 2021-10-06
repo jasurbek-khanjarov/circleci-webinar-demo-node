@@ -22,6 +22,18 @@ jobs:
           path: tests/_output
       - store_artifacts:
           path: tests/_output
+  test_2:
+    docker:
+      - image: 'cimg/base:stable'
+    steps:
+      - checkout
+      - node/install-packages
+      - run:
+          command: npm run test
+      - store_test_results:
+          path: tests/_output
+      - store_artifacts:
+          path: tests/_output
   deploy:
     circleci_ip_ranges: true # opts the job into the IP ranges feature
     docker:
@@ -63,10 +75,12 @@ workflows: # this is a demo of orbs
   test-build-and-notify:
     jobs:
     - test
+    - test_2
     - deploy:
         context: aws_secrets
         requires:
           - test
+          - test_2
     - notify:
         context: slack_secrets
         requires:
