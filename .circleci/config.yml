@@ -2,7 +2,7 @@ version: 2.1
 parameters:
     NODE_CACHE_VERSION:
       type: string
-      default: v4
+      default: v1
       description: 'Prefix of the cache keys. Change it if you want the next run to be cacheless.'
 orbs:
   slack: circleci/slack@4.1
@@ -27,9 +27,18 @@ jobs:
       - image: 'cimg/base:stable'
     steps:
       - checkout
+      # node cache
+      - restore_cache:
+          keys:
+            - node-<< pipeline.parameters.NODE_CACHE_VERSION >>-{{ checksum "package-lock.json" }}
+            - node-<< pipeline.parameters.NODE_CACHE_VERSION >>-
       - node/install:
-         install-yarn: true
+          install-yarn: true
       - node/install-packages
+      - save_cache:
+          key: node-<< pipeline.parameters.NODE_CACHE_VERSION >>-{{ checksum "package-lock.json" }}
+          paths:
+            - node_modules
       - run:
           command: npm run test
       - store_test_results:
