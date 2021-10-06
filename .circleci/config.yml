@@ -9,7 +9,7 @@ orbs:
   aws-s3: circleci/aws-s3@3.0
   node: circleci/node@4.7.0
 jobs:
-  test: # run this job where npm is already installed !
+  test: # run this job where node is already installed !
     executor:
       name: node/default
       tag: '13.14'
@@ -22,7 +22,7 @@ jobs:
           path: tests/_output
       - store_artifacts:
           path: tests/_output
-  test_2: # run this job where npm is not installed !
+  test_2: # run this job where node is not installed !
     docker:
       - image: 'cimg/base:stable'
     steps:
