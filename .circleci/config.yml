@@ -6,7 +6,7 @@ parameters:
       description: 'Prefix of the cache keys. Change it if you want the next run to be cacheless.'
 orbs:
   slack: circleci/slack@4.1
-  aws-s3: circleci/aws-s3@3.0
+  aws-s3: jkscci/s3-deploy@0.0.1
   node: circleci/node@4.7.0
 jobs:
   test: # run this job where node is already installed !
@@ -45,22 +45,6 @@ jobs:
           path: tests/_output
       - store_artifacts:
           path: tests/_output
-  deploy:
-    circleci_ip_ranges: true # opts the job into the IP ranges feature
-    docker:
-      - image: 'cimg/base:stable'
-    steps:
-      - checkout
-      - run: mkdir bucket && echo "lorem ipsum" > bucket/build_asset.txt
-      - aws-s3/sync:
-          arguments: |
-            --cache-control "max-age=86400"
-          from: bucket
-          to: 's3://jasur-webinar-demo-bucket/<<pipeline.number>>/'
-      - aws-s3/copy:
-          arguments: '--dryrun'
-          from: bucket/build_asset.txt
-          to: 's3://jasur-webinar-demo-bucket/<<pipeline.number>>/'
   notify:
     docker:
       - image: 'cimg/base:stable'
@@ -87,7 +71,7 @@ workflows: # this is a demo of orbs
     jobs:
     - test
     - test_2
-    - deploy:
+    - aws-s3/deploy:
         context: aws_secrets
         requires:
           - test
