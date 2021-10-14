@@ -77,5 +77,3 @@ workflows: # this is a demo of orbs
           - test
     - notify:
         context: slack_secrets
-        requires:
-          - deploy
